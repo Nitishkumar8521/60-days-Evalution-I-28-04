@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee record</title>
+    <style>
+       #container{
+        border: 2px solid red;
+       }
+       #navbar{
+        border: 2px solid blue;
+        background-color: rgb(31, 226, 226);
+        display: flex;
+        justify-content: space-evenly;
+       }
+       thead{
+        background-color: blueviolet;
+       }
+       table{
+        width: 100%;
+       }
+       #footer{
+        text-align: center;
+       }
+       #footer>button{
+        margin: 10px;
+        width: 70px;
+       }
+       #footer>button:hover{
+        cursor: pointer;
+       }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="navbar">
+            <div>Filter by Department
+                <select name="" id="department">
+                    <option value="">Select Department</option>
+                    <option value="hr">hr</option>
+                    <option value="finance">finance</option>
+                    <option value="marketing">marketing</option>
+                    <option value="engineering">engineering</option>
+                    <option value="operations">operations</option>
+                </select>
+            </div>
+            <div>
+                Filter by Gender
+                <select name="" id="gender">
+                   <option value="">Select gender</option>
+                   <option value="male">male</option>
+                   <option value="female">female</option>
+                </select>
+            </div>
+            <div>
+                Sort by Salary
+                <select name="" id="salary">
+                   <option value="">Select order</option>
+                   <option value="asc">low to high</option>
+                   <option value="desc">high to low</option>
+                </select>
+            </div>
+        </div>
+        <div id="body">
+              <table>
+                <thead>
+                    <tr>
+                        <th>S.no</th>
+                        <th>Name</th>
+                        <th>Gender</th>
+                        <th>Department</th>
+                        <th>Salary</th>
+                    </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+              </table>
+        </div>
+        <div id="footer">
+            <button id="prev">
+                Previous
+            </button>
+            <button id="next">
+                Next
+            </button>
+        </div>
+    </div>
+</body>
+</html>
+
+
+<script>
+
+  let container = document.getElementById("container");
+  let navbar = document.querySelector('#navbar');
+  let body = document.querySelector('#body');
+  let tbody = document.querySelector('tbody');
+  let employee = [];
+  let flag=true;
+  let count=1;
+  let prev = document.querySelector('#prev');
+  let next = document.querySelector('#next');
+
+//------------------------------portion for disable and enable
+
+  prev.disabled=count<=1?true:false;
+
+  function prevFunction(){
+    count--;
+    getData();
+    prev.disabled=count<=1?true:false;
+    next.disabled=count>=10?true:false;
+  }
+
+  function nextFunction(){
+    count++;
+    getData();
+    next.disabled=count>=10?true:false;
+    prev.disabled=count<=1?true:false;
+  }
+  prev.addEventListener('click',prevFunction);
+  next.addEventListener('click',nextFunction);
+
+  // -------------------------portion for sort by salary -------------------
+  let salary = document.querySelector('#salary');
+  salary.addEventListener('change',function(){
+    sortBysalary(salary.value);
+  })
+
+  function sortBysalary(data){
+    if(data!==""){
+        flag=true;
+        if(data==="asc"){
+          employee.sort((a,b)=>a.salary-b.salary);
+          displayData(employee);
+        }
+        else{
+            employee.sort((a,b)=>b.salary-a.salary);
+            displayData(employee);
+        }
+        flag=false;
+        getData();
+    }else{
+        displayData(employee);
+    }
+  }
+
+  //-------------------------portion for filter by gender -------------------
+
+  let gender = document.querySelector('#gender');
+  gender.addEventListener('change',function(){
+    filterBygender(gender.value);
+  })
+
+  function filterBygender(data){
+    if(data!==""){
+        let newEmployee = employee.filter((ele)=>ele.gender === data);
+        displayData(newEmployee);
+    }
+    else{
+        displayData(employee);
+    }
+  }
+  
+  //------------------------portion for filter by department ------------------------------
+  let department = document.querySelector('#department');
+  department.addEventListener('change',function(){
+    filerBydepartment(department.value);
+  })
+
+  function filerBydepartment(data){
+    if(data!==""){
+        let newEmployee = employee.filter((ele)=> ele.department===data)
+        displayData(newEmployee);
+    }
+    else{
+        displayData(employee);
+    }
+  }
+
+  function displayData(data){
+    tbody.innerText="";
+    if(data.length>0){
+      data.forEach(element => {
+        let tr = document.createElement('tr');
+        let sn = document.createElement('td');
+        sn.innerText=element.id;
+        let name = document.createElement('td');
+        name.innerText=element.name;
+        let gender = document.createElement('td');
+        gender.innerText=element.gender;
+        let department = document.createElement('td');
+        department.innerText=element.department;
+        let salary = document.createElement('td');
+        salary.innerText=element.salary;
+        tr.append(sn,name,gender,department,salary);
+        tbody.append(tr);
+      });
+    }
+  }
+
+  async function getData(){
+    try {
+        // let res = await fetch('https://dbioz2ek0e.execute-api.ap-south-1.amazonaws.com/mockapi/get-employees');
+        let res = await fetch(`https://dbioz2ek0e.execute-api.ap-south-1.amazonaws.com/mockapi/get-employees?page=${count}&limit=10`);
+        let data1 = await res.json();
+        employee = data1.data;
+        if(flag){
+         displayData(employee);
+        }
+    } catch (error) {
+        console.log(error);
+    }
+  }
+
+  getData();
+</script>
+
+      
+
